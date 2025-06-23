@@ -1,0 +1,29 @@
+name: Instagram Daily Upload
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # Todos los días a las 8:00 UTC (ajusta si quieres)
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download image
+        run: curl -o image.jpg https://samplelib.com/lib/preview/jpeg/sample-clouds-400x300.jpg
+
+      - name: Upload image to Instagram (step 1 - create media)
+        id: create_media
+        run: |
+          RESPONSE=$(curl -s -X POST "https://graph.facebook.com/v19.0/${{ secrets.IG_USER_ID }}/media" \
+            -F "image_url=https://samplelib.com/lib/preview/jpeg/sample-clouds-400x300.jpg" \
+            -F "caption=Buenos días desde la nube ☁️" \
+            -F "access_token=${{ secrets.ACCESS_TOKEN }}")
+          echo "$RESPONSE"
+          echo "MEDIA_ID=$(echo $RESPONSE | jq -r '.id')" >> $GITHUB_ENV
+
+      - name: Publish image (step 2)
+        run: |
+          curl -X POST "https://graph.facebook.com/v19.0/${{ secrets.IG_USER_ID }}/media_publish" \
+            -F "creation_id=${{ env.MEDIA_ID }}" \
+            -F "access_token=${{ secrets.ACCESS_TOKEN }}"
