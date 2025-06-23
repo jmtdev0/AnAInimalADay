@@ -3,6 +3,7 @@ name: Instagram Daily Upload
 on:
   schedule:
     - cron: '0 8 * * *' # Todos los días a las 8:00 UTC (ajusta si quieres)
+  workflow_dispatch:     # Esto habilita el botón "Run workflow"
 
 jobs:
   upload:
