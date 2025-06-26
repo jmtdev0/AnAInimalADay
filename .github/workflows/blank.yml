@@ -1,0 +1,38 @@
+name: Update Animal Prompt
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # Ejecuta cada día a las 07:00 UTC
+  workflow_dispatch:
+
+jobs:
+  generate-prompt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request new prompt from Cloudflare LLaMA
+        id: call_ai
+        run: |
+          RESPONSE=$(curl -s https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "messages": [
+                { "role": "system", "content": "You are a creative assistant who invents prompts for imaginary animals." },
+                { "role": "user", "content": "Create a unique prompt for generating a beautiful and fantastical creature. It should describe the creature’s features and the magical environment it lives in. Avoid common animals. The tone should be artistic and dreamlike." }
+              ]
+            }')
+
+          echo "Respuesta LLaMA:"
+          echo "$RESPONSE"
+
+          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '\n' | sed 's/"/\\"/g')
+          echo "PROMPT=$PROMPT" >> $GITHUB_ENV
+
+      - name: Update GitHub variable ANIMAL_PROMPT
+        run: |
+          curl -s -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/variables/ANIMAL_PROMPT \
+            -d "{\"name\":\"ANIMAL_PROMPT\",\"value\":\"${{ env.PROMPT }}\"}"
