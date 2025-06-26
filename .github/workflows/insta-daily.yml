@@ -2,29 +2,54 @@ name: Instagram Daily Upload
 
 on:
   schedule:
-    - cron: '0 8 * * *' # Todos los días a las 8:00 UTC (ajusta si quieres)
-  workflow_dispatch:     # Esto habilita el botón "Run workflow"
+    - cron: '0 8 * * *'  # Todos los días a las 8:00 UTC
+  workflow_dispatch:
 
 jobs:
   upload:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download image
-        run: curl -o image.jpg https://samplelib.com/lib/preview/jpeg/sample-clouds-400x300.jpg
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Upload image to Instagram (step 1 - create media)
+      - name: Generate image via Cloudflare Workers AI
+        id: generate_image
+        run: |
+          PROMPT="${{ vars.ANIMAL_PROMPT }}"
+          RESPONSE=$(curl -s --location "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/black-forest-labs/flux-1-schnell" \
+            --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
+            --header "Content-Type: application/json" \
+            --data "{ \"prompt\": \"$PROMPT\" }")
+
+          echo "$RESPONSE" | jq -r '.result.image' > image_base64.txt
+          
+          # Convert Base64 to binary JPG
+          base64 -d image_base64.txt > image.jpg
+
+      - name: Upload to Imgur
+        id: upload_imgur
+        run: |
+          RESPONSE=$(curl -s --location "https://api.imgur.com/3/image" \
+            --header "Authorization: Client-ID ${{ secrets.IMGUR_CLIENT_ID }}" \
+            --form "image=@image.jpg")
+
+          echo "$RESPONSE"
+          echo "IMG_URL=$(echo "$RESPONSE" | jq -r '.data.link')" >> $GITHUB_ENV
+
+      - name: Create media on Instagram
         id: create_media
         run: |
           RESPONSE=$(curl -s -X POST "https://graph.facebook.com/v19.0/${{ secrets.IG_USER_ID }}/media" \
-            -F "image_url=https://samplelib.com/lib/preview/jpeg/sample-clouds-400x300.jpg" \
-            -F "caption=Buenos días desde la nube ☁️" \
+            -F "image_url=${{ env.IMGUR_URL }}" \
+            -F "caption=🦄 Animal inventado del día: generado por IA con mucho cariño." \
             -F "access_token=${{ secrets.ACCESS_TOKEN }}")
+
           echo "$RESPONSE"
           echo "MEDIA_ID=$(echo $RESPONSE | jq -r '.id')" >> $GITHUB_ENV
 
-      - name: Publish image (step 2)
+      - name: Publish image to Instagram
         run: |
-          curl -X POST "https://graph.facebook.com/v19.0/${{ secrets.IG_USER_ID }}/media_publish" \
+          curl -s -X POST "https://graph.facebook.com/v19.0/${{ secrets.IG_USER_ID }}/media_publish" \
             -F "creation_id=${{ env.MEDIA_ID }}" \
             -F "access_token=${{ secrets.ACCESS_TOKEN }}"
