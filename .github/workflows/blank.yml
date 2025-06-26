@@ -1,46 +1,45 @@
-name: Alter Animal Prompt
-
 on:
   schedule:
-    - cron: '0 7 * * *'  # Todos los días a las 7:00 UTC
+    - cron: '0 6 * * *' # Cada día a las 06:00 UTC
   workflow_dispatch:
 
 jobs:
-  update-prompt:
+  update_prompt_prompt:
     runs-on: ubuntu-latest
 
     steps:
       - name: Call Llama to get a new image prompt generator
-        id: llama_prompt
+        env:
+          CLOUDFLARE_AUTH_TOKEN: ${{ secrets.CLOUDFLARE_AUTH_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          RESPONSE=$(curl -s --location 'https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct' \
-            --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
-            --header 'Content-Type: application/json' \
-            --data '{
+          RESPONSE=$(curl -s https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct \
+            -X POST \
+            -H "Authorization: Bearer $CLOUDFLARE_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
               "messages": [
                 { "role": "system", "content": "You are a creative assistant." },
-                { "role": "user", "content": "Invent a totally unique, colorful, and imaginative prompt for generating an image of a fantastic creature. The image should depict an animal that does not exist, and the style should be artistic and visually appealing, not realistic." }
+                { "role": "user", "content": "Give me a prompt to generate a beautiful, colorful, non-existent animal. The image should be full of fantasy and wonder. Be as imaginative as possible." }
               ]
             }')
-      
-          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response')
-          echo "Generated Prompt: $PROMPT"
-      
-          ESCAPED_PROMPT=$(jq -Rn --arg val "$PROMPT" '{"name":"PROMPT_PROMPT", "value": $val}')
-      
-          curl --location --request PATCH "https://api.github.com/repos/${{ github.repository }}/actions/variables/PROMPT_PROMPT" \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer ${{ secrets.ACCESS_TOKEN }}" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            --header "Content-Type: application/json" \
-            --data "$ESCAPED_PROMPT"
 
+          echo "$RESPONSE"
 
-      - name: Update PROMPT_PROMPT repo variable
+          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d "'")
+          PROMPT_ESCAPED=$(printf '%s\n' "$PROMPT" | jq -aRs .)
+
+          echo "PROMPT=$PROMPT" >> $GITHUB_ENV
+          echo "PROMPT_ESCAPED=$PROMPT_ESCAPED" >> $GITHUB_ENV
+
+      - name: Update PROMPT_PROMPT variable in GitHub repository
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
-          curl --location --request PATCH "https://api.github.com/repos/${{ github.repository }}/actions/variables/PROMPT_PROMPT" \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer ${{ secrets.YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN }}" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            --header "Content-Type: application/json" \
-            --data "{\"name\":\"PROMPT_PROMPT\",\"value\":${{ env.PROMPT_ESCAPED }}}"
+          curl --location --request PATCH "https://api.github.com/repos/$REPO/actions/variables/PROMPT_PROMPT" \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer $YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --header 'Content-Type: application/json' \
+            --data "{\"name\":\"PROMPT_PROMPT\",\"value\":${PROMPT_ESCAPED}}"
