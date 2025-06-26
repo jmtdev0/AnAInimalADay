@@ -31,9 +31,13 @@ jobs:
 
           echo "$RESPONSE"
 
-          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response' | head -c 500)
-          PROMPT_ESCAPED=$(printf '%s\n' "$PROMPT" | jq -aRs .)
-          echo "PROMPT=$PROMPT" >> $GITHUB_ENV
+          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response')
+          PROMPT_ESCAPED=$(printf '%s' "$PROMPT" | jq -aRs .)
+      
+          echo "PROMPT<<EOF" >> $GITHUB_ENV
+          echo "$PROMPT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
           echo "PROMPT_ESCAPED=$PROMPT_ESCAPED" >> $GITHUB_ENV
 
       - name: Update PROMPT_PROMPT repo variable
