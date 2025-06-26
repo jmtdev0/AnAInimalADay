@@ -39,7 +39,7 @@ jobs:
 
       - name: Update PROMPT_PROMPT variable in GitHub repository
         env:
-          GH_TOKEN: ${{ secrets.YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN }}
+          YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN: ${{ secrets.YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           curl --location --request PATCH "https://api.github.com/repos/jmtdev0/AnAInimalADay/actions/variables/PROMPT_PROMPT" \
