@@ -1,38 +1,36 @@
-name: Update Animal Prompt
+name: Alter Animal Prompt
 
 on:
   schedule:
-    - cron: '0 7 * * *'  # Ejecuta cada día a las 07:00 UTC
+    - cron: '0 6 * * *'  # Todos los días a las 06:00 UTC
   workflow_dispatch:
 
 jobs:
   generate-prompt:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Request new prompt from Cloudflare LLaMA
-        id: call_ai
+      - name: Call LLaMA to generate new animal prompt
+        id: llama
         run: |
-          RESPONSE=$(curl -s https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct \
-            -X POST \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_AUTH_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
+          RESPONSE=$(curl -s --location "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct" \
+            --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
+            --header "Content-Type: application/json" \
+            --data '{
               "messages": [
-                { "role": "system", "content": "You are a creative assistant who invents prompts for imaginary animals." },
-                { "role": "user", "content": "Create a unique prompt for generating a beautiful and fantastical creature. It should describe the creature’s features and the magical environment it lives in. Avoid common animals. The tone should be artistic and dreamlike." }
+                { "role": "system", "content": "You are a creative assistant that crafts stunning text-to-image prompts." },
+                { "role": "user", "content": "Generate a completely original text-to-image prompt for an AI model. The prompt must describe a never-before-seen animal species — something that could not exist in our real world. Let your imagination run wild. Describe the creature’s physical features, behavior, and the extraordinary environment it lives in. The goal is to inspire the creation of a stunning and surreal image, unlike anything seen before. Avoid all references to known animals." }
               ]
             }')
 
-          echo "Respuesta LLaMA:"
           echo "$RESPONSE"
-
-          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '\n' | sed 's/"/\\"/g')
+          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response' | jq -sRr '@json') # encode safely
           echo "PROMPT=$PROMPT" >> $GITHUB_ENV
 
-      - name: Update GitHub variable ANIMAL_PROMPT
+      - name: Update ANIMAL_PROMPT in GitHub repository variables
         run: |
-          curl -s -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/actions/variables/ANIMAL_PROMPT \
-            -d "{\"name\":\"ANIMAL_PROMPT\",\"value\":\"${{ env.PROMPT }}\"}"
+            -d "{\"name\":\"ANIMAL_PROMPT\",\"value\":${{ env.PROMPT }}}"
