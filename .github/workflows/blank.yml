@@ -26,12 +26,15 @@ jobs:
               ]
             }')
 
-          echo "$RESPONSE"
+          echo "Llama response: $RESPONSE"
 
-          PROMPT=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d "'")
-          PROMPT_ESCAPED=$(printf '%s\n' "$PROMPT" | jq -aRs .)
+          RAW_PROMPT=$(echo "$RESPONSE" | jq -r '.result.response')
+          CLEAN_PROMPT=$(echo "$RAW_PROMPT" | tr -d '"' | tr -d "'")
+          PROMPT_ESCAPED=$(printf '%s' "$CLEAN_PROMPT" | jq -aRs .)
 
-          echo "PROMPT=$PROMPT" >> $GITHUB_ENV
+          echo "CLEAN_PROMPT and PROMPT_ESCAPED prepared successfully."
+
+          # Guardamos sólo la versión escapada para evitar errores
           echo "PROMPT_ESCAPED=$PROMPT_ESCAPED" >> $GITHUB_ENV
 
       - name: Update PROMPT_PROMPT variable in GitHub repository
