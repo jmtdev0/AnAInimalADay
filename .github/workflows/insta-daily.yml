@@ -35,7 +35,7 @@ jobs:
             --form "image=@image.jpg")
 
           echo "$RESPONSE"
-          echo "IMG_URL=$(echo "$RESPONSE" | jq -r '.data.link')" >> $GITHUB_ENV
+          echo "IMGUR_URL=$(echo "$RESPONSE" | jq -r '.data.link')" >> $GITHUB_ENV
 
       - name: Create media on Instagram
         id: create_media
