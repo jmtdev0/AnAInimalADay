@@ -11,34 +11,30 @@ jobs:
 
     steps:
       - name: Call Llama to get a new image prompt generator
-        id: llama_call
+        id: llama_prompt
         run: |
-          RESPONSE=$(curl -s --location --request POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct" \
+          RESPONSE=$(curl -s --location 'https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct' \
             --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
-            --header "Content-Type: application/json" \
+            --header 'Content-Type: application/json' \
             --data '{
               "messages": [
-                {
-                  "role": "system",
-                  "content": "You are a creative AI specialized in writing prompts for other AIs. Each day, you generate a unique and imaginative prompt for a new, never-before-seen animal that will be used to generate a colorful, fantastical image. The only rule is that the creature must not exist in the real world."
-                },
-                {
-                  "role": "user",
-                  "content": "Give me today’s prompt."
-                }
+                { "role": "system", "content": "You are a creative assistant." },
+                { "role": "user", "content": "Invent a totally unique, colorful, and imaginative prompt for generating an image of a fantastic creature. The image should depict an animal that does not exist, and the style should be artistic and visually appealing, not realistic." }
               ]
             }')
-
-          echo "$RESPONSE"
-
+      
           PROMPT=$(echo "$RESPONSE" | jq -r '.result.response')
-          PROMPT_ESCAPED=$(printf '%s' "$PROMPT" | jq -aRs .)
+          echo "Generated Prompt: $PROMPT"
       
-          echo "PROMPT<<EOF" >> $GITHUB_ENV
-          echo "$PROMPT" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          ESCAPED_PROMPT=$(jq -Rn --arg val "$PROMPT" '{"name":"PROMPT_PROMPT", "value": $val}')
       
-          echo "PROMPT_ESCAPED=$PROMPT_ESCAPED" >> $GITHUB_ENV
+          curl --location --request PATCH "https://api.github.com/repos/${{ github.repository }}/actions/variables/PROMPT_PROMPT" \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${{ secrets.ACCESS_TOKEN }}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --header "Content-Type: application/json" \
+            --data "$ESCAPED_PROMPT"
+
 
       - name: Update PROMPT_PROMPT repo variable
         run: |
