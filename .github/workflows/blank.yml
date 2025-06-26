@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update_prompt_prompt:
+  update_animal_prompt:
     runs-on: ubuntu-latest
 
     steps:
@@ -37,14 +37,14 @@ jobs:
           # Guardamos sólo la versión escapada para evitar errores
           echo "PROMPT_ESCAPED=$PROMPT_ESCAPED" >> $GITHUB_ENV
 
-      - name: Update PROMPT_PROMPT variable in GitHub repository
+      - name: Update ANIMAL_PROMPT variable in GitHub repository
         env:
           YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN: ${{ secrets.YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          curl --location --request PATCH "https://api.github.com/repos/jmtdev0/AnAInimalADay/actions/variables/PROMPT_PROMPT" \
+          curl --location --request PATCH "https://api.github.com/repos/jmtdev0/AnAInimalADay/actions/variables/ANIMAL_PROMPT" \
             --header 'Accept: application/vnd.github+json' \
             --header "Authorization: Bearer $YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN" \
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             --header 'Content-Type: application/json' \
-            --data "{\"name\":\"PROMPT_PROMPT\",\"value\":${PROMPT_ESCAPED}}"
+            --data "{\"name\":\"ANIMAL_PROMPT\",\"value\":${PROMPT_ESCAPED}}"
