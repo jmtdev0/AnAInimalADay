@@ -29,7 +29,9 @@ jobs:
             --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
             --header "Content-Type: application/json" \
             --data "{ \"prompt\": \"$PROMPT\" }")
-      
+
+          echo "$RESPONSE" | jq .
+          
           # Extraemos la imagen base64 y la guardamos
           echo "$RESPONSE" | jq -r '.result.image' > image_base64.txt
       
