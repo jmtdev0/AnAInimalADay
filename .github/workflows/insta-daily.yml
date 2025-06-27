@@ -16,16 +16,26 @@ jobs:
       - name: Generate image via Cloudflare Workers AI
         id: generate_image
         run: |
-          PROMPT="${{ vars.ANIMAL_PROMPT }}"
+          # Recuperamos el prompt correctamente desde la variable de entorno, limpiando comillas dobles y simples
+          echo "${{ vars.ANIMAL_PROMPT }}" | tr -d '"' | tr -d "'" > prompt.txt
+          PROMPT=$(cat prompt.txt)
+      
+          # Mostramos el prompt para depuración
+          echo "Prompt to use:"
+          echo "$PROMPT"
+      
+          # Llamamos a Flux con el prompt seguro
           RESPONSE=$(curl -s --location "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/black-forest-labs/flux-1-schnell" \
             --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
             --header "Content-Type: application/json" \
             --data "{ \"prompt\": \"$PROMPT\" }")
-
+      
+          # Extraemos la imagen base64 y la guardamos
           echo "$RESPONSE" | jq -r '.result.image' > image_base64.txt
-          
-          # Convert Base64 to binary JPG
+      
+          # Convertimos Base64 a imagen JPG
           base64 -d image_base64.txt > image.jpg
+
 
       - name: Upload to Imgur
         id: upload_imgur
