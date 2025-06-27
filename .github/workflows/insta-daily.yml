@@ -17,7 +17,7 @@ jobs:
         id: generate_image
         run: |
           # Recuperamos el prompt correctamente desde la variable de entorno, limpiando comillas dobles y simples
-          echo "${{ vars.ANIMAL_PROMPT }}" | tr -d '"' | tr -d "'" > prompt.txt
+          echo "${{ vars.ANIMAL_PROMPT }}" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r' > prompt.txt
           PROMPT=$(cat prompt.txt)
       
           # Mostramos el prompt para depuración
