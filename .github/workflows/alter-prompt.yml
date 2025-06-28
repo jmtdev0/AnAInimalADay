@@ -26,7 +26,7 @@ jobs:
           echo "Selected adjectives: $SELECTED_ADJECTIVES"
           echo "Using seed: $TIMESTAMP"
       
-          PROMPT="Give me a prompt to generate a non-existent animal. Be as imaginative and crazy as possible. The creature could be described as: $SELECTED_ADJECTIVES."
+          PROMPT="[$TIMESTAMP] Give me a prompt to generate a non-existent animal. Be as imaginative and crazy as possible. The creature could be described as: $SELECTED_ADJECTIVES."
       
           RESPONSE=$(curl -s https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct \
             -X POST \
@@ -36,9 +36,7 @@ jobs:
               \"messages\": [
                 { \"role\": \"system\", \"content\": \"You are a creative assistant.\" },
                 { \"role\": \"user\", \"content\": \"$PROMPT\" }
-              ],
-              \"seed\": $TIMESTAMP
-            }")
+              ]}")
       
           # Clean quotes
           CLEAN_RESPONSE=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '\n' | tr -d '\r' | tr -d '"' | tr -d "'")
