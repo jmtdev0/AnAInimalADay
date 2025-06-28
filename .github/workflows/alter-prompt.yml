@@ -37,12 +37,14 @@ jobs:
                 { \"role\": \"system\", \"content\": \"You are a creative assistant.\" },
                 { \"role\": \"user\", \"content\": \"$PROMPT\" }
               ]}")
+
+          echo $RESPONSE
       
           # Clean quotes
           CLEAN_RESPONSE=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '\n' | tr -d '\r' | tr -d '"' | tr -d "'")
       
           echo "PROMPT_ESCAPED=$CLEAN_RESPONSE" >> $GITHUB_ENV
-
+        
       - name: Update ANIMAL_PROMPT variable in GitHub repository
         env:
           YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN: ${{ secrets.YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN }}
