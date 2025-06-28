@@ -41,7 +41,7 @@ jobs:
             }")
       
           # Clean quotes
-          CLEAN_RESPONSE=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '"' | tr -d "'")
+          CLEAN_RESPONSE=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '\n' | tr -d '\r' | tr -d '"' | tr -d "'")
       
           echo "PROMPT_ESCAPED=$CLEAN_RESPONSE" >> $GITHUB_ENV
 
