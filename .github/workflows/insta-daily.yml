@@ -2,7 +2,7 @@ name: Instagram Daily Upload
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # Todos los días a las 8:00 UTC
+    - cron: '0 */6 * * *'  # Cada 6 horas
   workflow_dispatch:
 
 jobs:
