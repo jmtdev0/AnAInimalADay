@@ -1,9 +1,15 @@
 name: Alter Prompt
 
 on:
-  schedule:
-    - cron: '0 6 * * *' # Cada día a las 06:00 UTC
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      CLOUDFLARE_ACCESS_TOKEN:
+        required: true
+      CLOUDFLARE_USER_ID:
+        required: true
+      YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN:
+        required: true
 
 jobs:
   update_animal_prompt:
@@ -13,21 +19,21 @@ jobs:
       - name: Pick 3 random adjectives and call Llama with seed and descriptors
         run: |
           set -e
-      
+          
           # Read comma-separated adjectives from repository variable
           IFS=',' read -ra ANIMAL_ADJECTIVES <<< "${{ vars.ANIMAL_ADJECTIVES }}"
-      
+
           # Shuffle and pick 3 adjectives
           SELECTED_ADJECTIVES=$(printf "%s\n" "${ANIMAL_ADJECTIVES[@]}" | shuf -n 3 | paste -sd ', ' -)
-      
+
           # Create a unique seed using timestamp
           TIMESTAMP=$(date +%s)
-      
+
           echo "Selected adjectives: $SELECTED_ADJECTIVES"
           echo "Using seed: $TIMESTAMP"
-      
+
           PROMPT="[$TIMESTAMP] Give me a prompt to generate a non-existent animal. Be as imaginative and crazy as possible. The creature could be described as: $SELECTED_ADJECTIVES."
-      
+
           RESPONSE=$(curl -s https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct \
             -X POST \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
@@ -39,21 +45,20 @@ jobs:
               ]}")
 
           echo $RESPONSE
-      
+
           # Clean quotes
           CLEAN_RESPONSE=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '\n' | tr -d '\r' | tr -d '"' | tr -d "'")
-      
+
           echo "PROMPT_ESCAPED=$CLEAN_RESPONSE" >> $GITHUB_ENV
-        
+
       - name: Update ANIMAL_PROMPT variable in GitHub repository
         env:
           YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN: ${{ secrets.YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          curl --location --request PATCH "https://api.github.com/repos/jmtdev0/AnAInimalADay/actions/variables/ANIMAL_PROMPT" \
+          curl --location --request PATCH "https://api.github.com/repos/$REPO/actions/variables/ANIMAL_PROMPT" \
             --header 'Accept: application/vnd.github+json' \
             --header "Authorization: Bearer $YEEHAW_ALTER_ANIMAL_PROMPT_TOKEN" \
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             --header 'Content-Type: application/json' \
             --data "$(jq -n --arg value "$PROMPT_ESCAPED" '{name: "ANIMAL_PROMPT", value: $value}')"
-
