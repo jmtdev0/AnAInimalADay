@@ -16,40 +16,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pick 3 random adjectives and call Llama with seed and descriptors
+      - name: Generate new animal prompt using random style and habitat
         run: |
           set -e
           
-          # Read comma-separated adjectives from repository variable
-          IFS=',' read -ra ANIMAL_ADJECTIVES <<< "${{ vars.ANIMAL_ADJECTIVES }}"
+          # Convert comma-separated lists to arrays
+          IFS=',' read -ra STYLES <<< "${{ vars.IMAGE_STYLE }}"
+          IFS=',' read -ra HABITATS <<< "${{ vars.ANIMAL_HABITAT }}"
 
-          # Shuffle and pick 3 adjectives
-          SELECTED_ADJECTIVES=$(printf "%s\n" "${ANIMAL_ADJECTIVES[@]}" | shuf -n 3 | paste -sd ', ' -)
+          # Select random style and habitat
+          RANDOM_STYLE=$(printf "%s\n" "${STYLES[@]}" | shuf -n 1)
+          RANDOM_HABITAT=$(printf "%s\n" "${HABITATS[@]}" | shuf -n 1)
 
-          # Create a unique seed using timestamp
+          # Generate prompt
           TIMESTAMP=$(date +%s)
+          PROMPT="Create an image of a fantastical creature. It lives in a $RANDOM_HABITAT. Image of the style: $RANDOM_STYLE."
 
-          echo "Selected adjectives: $SELECTED_ADJECTIVES"
-          echo "Using seed: $TIMESTAMP"
-
-          PROMPT="[$TIMESTAMP] Give me a prompt to generate a non-existent animal. Be as imaginative and crazy as possible. The creature could be described as: $SELECTED_ADJECTIVES."
-
-          RESPONSE=$(curl -s https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_USER_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct \
-            -X POST \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_ACCESS_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"messages\": [
-                { \"role\": \"system\", \"content\": \"You are a creative assistant.\" },
-                { \"role\": \"user\", \"content\": \"$PROMPT\" }
-              ]}")
-
-          echo $RESPONSE
-
-          # Clean quotes
-          CLEAN_RESPONSE=$(echo "$RESPONSE" | jq -r '.result.response' | tr -d '\n' | tr -d '\r' | tr -d '"' | tr -d "'")
-
-          echo "PROMPT_ESCAPED=$CLEAN_RESPONSE" >> $GITHUB_ENV
+          echo "Generated Prompt: $PROMPT"
+          echo "PROMPT_ESCAPED=$PROMPT" >> $GITHUB_ENV
 
       - name: Update ANIMAL_PROMPT variable in GitHub repository
         env:
