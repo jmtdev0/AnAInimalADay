@@ -74,3 +74,19 @@ jobs:
           curl -s -X POST "https://graph.facebook.com/v19.0/${{ secrets.IG_USER_ID }}/media_publish" \
             -F "creation_id=${{ env.MEDIA_ID }}" \
             -F "access_token=${{ secrets.ACCESS_TOKEN }}"
+
+      - name: Log date, prompt, and image URL to image_log.jsonl
+        run: |
+          set -e
+
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          PROMPT=$(cat prompt.txt | tr -d '\n' | tr -d '\r' | sed 's/"/\\"/g')  # escape JSON quotes
+          IMGUR_URL="${{ env.IMGUR_URL }}"
+
+          echo "{\"date\":\"$DATE\",\"prompt\":\"$PROMPT\",\"imgur\":\"$IMGUR_URL\"}" >> image_log.jsonl
+
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add image_log.jsonl
+          git commit -m "Log image upload on $DATE"
+          git push
