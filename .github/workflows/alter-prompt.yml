@@ -23,14 +23,16 @@ jobs:
           # Convert comma-separated lists to arrays
           IFS=',' read -ra STYLES <<< "${{ vars.IMAGE_STYLE }}"
           IFS=',' read -ra HABITATS <<< "${{ vars.ANIMAL_HABITAT }}"
+          IFS=',' read -ra SIMILAR <<< "${{ vars.ANIMAL_SIMILAR_ANIMALS }}"
 
           # Select random style and habitat
           RANDOM_STYLE=$(printf "%s\n" "${STYLES[@]}" | shuf -n 1)
           RANDOM_HABITAT=$(printf "%s\n" "${HABITATS[@]}" | shuf -n 1)
+          RANDOM_ANIMAL=$(printf "%s\n" "${SIMILAR[@]}" | shuf -n 1)
 
           # Generate prompt
           TIMESTAMP=$(date +%s)
-          PROMPT="Create an image of a beautiful fantastical creature. It lives in a $RANDOM_HABITAT. Image of the style: $RANDOM_STYLE."
+          PROMPT="Create an image of a beautiful fantastical creature. Although it is a non-existent animal, it ressembles a $RANDOM_ANIMAL. It lives in a $RANDOM_HABITAT. Image of the style: $RANDOM_STYLE."
 
           echo "Generated Prompt: $PROMPT"
           echo "PROMPT_ESCAPED=$PROMPT" >> $GITHUB_ENV
