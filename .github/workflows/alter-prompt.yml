@@ -32,7 +32,7 @@ jobs:
 
           # Generate prompt
           TIMESTAMP=$(date +%s)
-          PROMPT="Create an image of a fantastical, never-before-seen creature. Its appearance is loosely inspired by a $RANDOM_ANIMAL, but it has clearly unique, imaginative traits that set it apart from any real animal. It lives in a $RANDOM_HABITAT. The image should be in the style of: $RANDOM_STYLE."
+          PROMPT="In the twisted $RANDOM_HABITAT of a forgotten world, a fantastical being roams. Its silhouette faintly recalls a $RANDOM_ANIMAL, but everything else is dreamlike: textures, limbs, and colors defy reality. This is no ordinary creature — it belongs to legend."
 
           echo "Generated Prompt: $PROMPT"
           echo "PROMPT_ESCAPED=$PROMPT" >> $GITHUB_ENV
