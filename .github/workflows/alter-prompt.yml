@@ -23,11 +23,13 @@ jobs:
           # Convert comma-separated lists to arrays
           IFS=',' read -ra STYLES <<< "${{ vars.IMAGE_STYLE }}"
           IFS=',' read -ra HABITATS <<< "${{ vars.ANIMAL_HABITAT }}"
+          IFS=',' read -ra CLASS <<< "${{ vars.ANIMAL_CLASS }}"
           IFS=',' read -ra SIMILAR <<< "${{ vars.ANIMAL_SIMILAR_ANIMALS }}"
 
           # Select random style and habitat
           RANDOM_STYLE=$(printf "%s\n" "${STYLES[@]}" | shuf -n 1)
           RANDOM_HABITAT=$(printf "%s\n" "${HABITATS[@]}" | shuf -n 1)
+          RANDOM_CLASS=$(printf "%s\n" "${CLASS[@]}" | shuf -n 1)
           RANDOM_ANIMAL=$(printf "%s\n" "${SIMILAR[@]}" | shuf -n 1)
 
           # Generate prompt
