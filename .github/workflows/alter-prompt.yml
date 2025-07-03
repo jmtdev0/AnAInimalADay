@@ -32,7 +32,9 @@ jobs:
 
           # Generate prompt
           TIMESTAMP=$(date +%s)
-          PROMPT="Create an image of a beautiful fantastical creature that lives in a $RANDOM_HABITAT. Image of the style: $RANDOM_STYLE."
+          
+          # PROMPT="Create an image of a beautiful fantastical creature that lives in a $RANDOM_HABITAT. Image of the style: $RANDOM_STYLE."
+          PROMPT="Create an image of an imaginative and otherworldly creature. It belongs to the class of $RANDOM_CLASS."
 
           echo "Generated Prompt: $PROMPT"
           echo "PROMPT_ESCAPED=$PROMPT" >> $GITHUB_ENV
