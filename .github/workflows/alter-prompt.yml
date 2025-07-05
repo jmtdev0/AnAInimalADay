@@ -36,7 +36,8 @@ jobs:
           TIMESTAMP=$(date +%s)
           
           # PROMPT="Create an image of a beautiful fantastical creature that lives in a $RANDOM_HABITAT. Image of the style: $RANDOM_STYLE."
-          PROMPT="Create an image of an imaginative and otherworldly creature. It belongs to the class of $RANDOM_CLASS. Please, do not create an image with an empty background. Show the animal's habitat, and show how the animal interacts with it. "
+          # PROMPT="Create an image of an imaginative and otherworldly creature. It belongs to the class of $RANDOM_CLASS. Please, do not create an image with an empty background. Show the animal's habitat, and show how the animal interacts with it. "
+          PROMPT = "Create a detailed scene featuring a fantastical creature in its natural environment. The creature belongs to the class of $RANDOM_CLASS. Show the creature interacting with or moving through its habitat. The image should depict not just the creature but also its surroundings — plants, terrain, atmosphere — as part of a coherent and vivid landscape."
 
           echo "Generated Prompt: $PROMPT"
           echo "PROMPT_ESCAPED=$PROMPT" >> $GITHUB_ENV
