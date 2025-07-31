@@ -40,7 +40,7 @@ jobs:
           # PROMPT="Create an image of a beautiful fantastical creature that lives in a $RANDOM_HABITAT. Image of the style: $RANDOM_STYLE."
           # PROMPT="Create an image of an imaginative and otherworldly creature. It belongs to the class of $RANDOM_CLASS. Please, do not create an image with an empty background. Show the animal's habitat, and show how the animal interacts with it. "
           # PROMPT="Create a detailed scene featuring a fantastical creature in its natural environment. The creature is a $RANDOM_CLASS and lives in a $RANDOM_HABITAT. Show the creature interacting with or moving through its habitat. The image should depict not just the creature but also its surroundings — plants, terrain, atmosphere — as part of a coherent and vivid landscape."
-          PROMPT="Create a detailed scene featuring a fantastical creature in its natural environment. The creature is a $RANDOM_CLASS and lives in a $RANDOM_HABITAT. Show the creature interacting with or moving through its habitat. The image should depict not just the creature but also its surroundings — plants, terrain, atmosphere — as part of a coherent and vivid landscape. Use a $CAMERA_ANGLE perspective to enhance the composition."
+          PROMPT="Create a detailed scene featuring a fantastical creature in its natural environment. The creature is a $RANDOM_CLASS and lives in a $RANDOM_HABITAT. Show the creature interacting with or moving through its habitat. The image should depict not just the creature but also its surroundings — plants, terrain, atmosphere — as part of a coherent and vivid landscape. Use a $RANDOM_ANGLE perspective to enhance the composition."
 
           echo "Generated Prompt: $PROMPT"
           echo "PROMPT_ESCAPED=$PROMPT" >> $GITHUB_ENV
